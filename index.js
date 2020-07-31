@@ -11,16 +11,17 @@ const {EmployeeExport} = require('./models/Employee');
 
 const apiBaseUrl = process.env.API_ENDPOINT;
 
-async function main() {
-    /* Entrar com a lista de status a serem buscados */
+let initialAccessToken;
 
+async function main() {
+    initialAccessToken = await auth.requestAnAccessToken();
+
+    /* Entrar com a lista de status a serem buscados */
     let statusList = [
         // 240,
         // 400,
         500
     ];
-
-    let accessToken = await auth.requestAnAccessToken();
 
     console.log('buscando dados na Acesso RH..');
 
@@ -32,7 +33,7 @@ async function main() {
         let offSet = 0;
 
         while (true) {
-            let positionQueryResult = await getPositions(sUrl, accessToken, offSet);
+            let positionQueryResult = await getPositions(sUrl, getAccessToken(), offSet);
             if (positionQueryResult.count > (positionQueryResult.offset + positionQueryResult.limit)) {
                 aPositions = aPositions.concat(positionQueryResult.positions);
                 offSet += positionQueryResult.limit;
@@ -50,7 +51,8 @@ async function main() {
     for (let i = 0; i < aPositions.length; i++) {
         const position = aPositions[i];
 
-        const positionDetail = await getPositionDetail(position.id, accessToken);
+
+        const positionDetail = await getPositionDetail(position.id, getAccessToken());
 
         let oExport = new EmployeeExport();
         oExport.name = position.profile.name;
@@ -135,6 +137,16 @@ async function getPositionDetail(positionId, accessToken) {
             }
         });
     });
+}
+
+async function getAccessToken() {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+
+    if (currentTimestamp > initialAccessToken.expires_at) {
+        return await auth.requestAnAccessToken();
+    }
+
+    return initialAccessToken;
 }
 
 main().catch((error) => console.error(error));
