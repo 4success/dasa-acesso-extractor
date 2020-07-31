@@ -22,6 +22,8 @@ async function main() {
 
     let accessToken = await auth.requestAnAccessToken();
 
+    console.log('buscando dados na acessoRH..');
+
     let aPositions = [];
     for (let i = 0; i < statusList.length; i++) {
         const statusItem = statusList[i];
@@ -42,6 +44,8 @@ async function main() {
     }
 
     let aOutput = [];
+
+    console.log(`foram encontradas ${aPositions.length} posições`);
 
     for (let i = 0; i < aPositions.length; i++) {
         const position = aPositions[i];
@@ -67,6 +71,7 @@ async function main() {
         }
 
         aOutput.push(oExport);
+        console.log(`processando registro ${i}...`);
     }
 
     let columns = {
@@ -77,6 +82,8 @@ async function main() {
         cpf: 'cpf'
     };
 
+    console.log('gerando arquivo..');
+
     stringify(aOutput, {
         header: true,
         columns: columns,
@@ -85,7 +92,7 @@ async function main() {
         if (err) throw err;
         fs.writeFile(`./output/${new Date().getTime()}.csv`, output, (err) => {
             if (err) throw err;
-            console.log('my.csv saved.');
+            console.log('Arquivo CSV gerado com sucesso');
         });
     });
 }
