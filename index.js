@@ -146,7 +146,7 @@ async function getAccessToken() {
     const currentTimestamp = Math.floor(Date.now() / 1000);
 
     if (currentTimestamp > initialAccessToken.expires_at) {
-        return await auth.requestAnAccessToken();
+        initialAccessToken = await auth.requestAnAccessToken();
     }
 
     return initialAccessToken;
