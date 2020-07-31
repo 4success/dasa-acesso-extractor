@@ -33,14 +33,17 @@ async function main() {
         let offSet = 0;
 
         while (true) {
-            let positionQueryResult = await getPositions(sUrl, getAccessToken(), offSet);
+            let positionQueryResult = await getPositions(sUrl, await getAccessToken(), offSet);
             if (positionQueryResult.count > (positionQueryResult.offset + positionQueryResult.limit)) {
                 aPositions = aPositions.concat(positionQueryResult.positions);
                 offSet += positionQueryResult.limit;
             } else {
                 aPositions = aPositions.concat(positionQueryResult.positions);
+                console.log(`foram buscadas  ${aPositions.length} posições de ${positionQueryResult.count}`)
                 break;
             }
+
+            console.log(`foram buscadas ${aPositions.length} posições de ${positionQueryResult.count}`)
         }
     }
 
@@ -52,7 +55,7 @@ async function main() {
         const position = aPositions[i];
 
 
-        const positionDetail = await getPositionDetail(position.id, getAccessToken());
+        const positionDetail = await getPositionDetail(position.id, await getAccessToken());
 
         let oExport = new EmployeeExport();
         oExport.name = position.profile.name;
@@ -110,7 +113,7 @@ async function getPositions(sUrl, accessToken, page) {
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
                 console.error('Erro ao buscar posições')
-                reject(response);
+                reject(response.toJSON());
             } else {
                 response = JSON.parse(body);
                 resolve(response);
@@ -130,7 +133,7 @@ async function getPositionDetail(positionId, accessToken) {
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
                 console.error('Erro ao buscar detalhe de posição ' + positionId)
-                reject(response);
+                reject(response.toJSON());
             } else {
                 response = JSON.parse(body);
                 resolve(response);
