@@ -46,8 +46,6 @@ async function requestAnAccessToken(serviceToken) {
                 assertion: serviceToken
             }
         }
-        console.log('Requesting Access Token with self created token:')
-        console.log('', serviceToken)
 
         // Ask identity and authorization server for an access token
         request(options, (error, response, body) => {
@@ -66,11 +64,8 @@ async function requestAnAccessToken(serviceToken) {
 }
 
 module.exports.requestAnAccessToken = async function () {
+    console.log('autenticando na AcessoRH...')
     let token = await requestAnAccessToken(createServiceAccountToken(options));
-
-    let payload = jwt.decode(token.access_token);
-    console.log('Response:');
-    console.log(' Access Token: ', token.access_token);
-
+    console.log('sucesso! access token: ', token.access_token);
     return token;
 }

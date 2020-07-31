@@ -15,14 +15,14 @@ async function main() {
     /* Entrar com a lista de status a serem buscados */
 
     let statusList = [
-        240,
-        400,
+        // 240,
+        // 400,
         500
     ];
 
     let accessToken = await auth.requestAnAccessToken();
 
-    console.log('buscando dados na acessoRH..');
+    console.log('buscando dados na Acesso RH..');
 
     let aPositions = [];
     for (let i = 0; i < statusList.length; i++) {
@@ -107,7 +107,8 @@ async function getPositions(sUrl, accessToken, page) {
 
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
-                reject(error);
+                console.error('Erro ao buscar posições')
+                reject(response);
             } else {
                 response = JSON.parse(body);
                 resolve(response);
@@ -126,7 +127,8 @@ async function getPositionDetail(positionId, accessToken) {
 
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
-                reject(error);
+                console.error('Erro ao buscar detalhe de posição ' + positionId)
+                reject(response);
             } else {
                 response = JSON.parse(body);
                 resolve(response);
