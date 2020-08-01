@@ -66,7 +66,7 @@ async function requestAnAccessToken(serviceToken) {
 module.exports.requestAnAccessToken = async function () {
     console.log('autenticando na AcessoRH...')
     let token = await requestAnAccessToken(createServiceAccountToken(options));
-    console.log('sucesso! access token: ', token.access_token);
+    console.log('sucesso! autenticado');
 
     token.created_at = Math.floor(Date.now() / 1000);
     token.expires_at = token.created_at + token.expires_in;

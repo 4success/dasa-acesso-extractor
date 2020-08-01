@@ -33,7 +33,17 @@ async function main() {
         let offSet = 0;
 
         while (true) {
-            let positionQueryResult = await getPositions(sUrl, await getAccessToken(), offSet);
+            let positionQueryResult;
+            try {
+                positionQueryResult = await getPositions(sUrl, await getAccessToken(), offSet);
+            } catch (e) {
+                console.log(`Falha ao buscar posições.`);
+                console.log(e);
+                console.log(`Tentando novamente em 2s...`);
+                await new Promise(r => setTimeout(r, 2000));
+                positionQueryResult = await getPositions(sUrl, await getAccessToken(), offSet);
+            }
+
             if (positionQueryResult.count > (positionQueryResult.offset + positionQueryResult.limit)) {
                 aPositions = aPositions.concat(positionQueryResult.positions);
                 offSet += positionQueryResult.limit;
@@ -54,8 +64,17 @@ async function main() {
     for (let i = 0; i < aPositions.length; i++) {
         const position = aPositions[i];
 
+        let positionDetail;
 
-        const positionDetail = await getPositionDetail(position.id, await getAccessToken());
+        try {
+            positionDetail = await getPositionDetail(position.id, await getAccessToken());
+        } catch (e) {
+            console.log(`Falha ao buscar detalhes da posição ${position.id}.`);
+            console.log(e);
+            console.log(`Tentando novamente em 2s...`);
+            await new Promise(r => setTimeout(r, 2000));
+            positionDetail = await getPositionDetail(position.id, await getAccessToken());
+        }
 
         let oExport = new EmployeeExport();
         oExport.name = position.profile.name;
@@ -113,7 +132,7 @@ async function getPositions(sUrl, accessToken, page) {
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
                 console.error('Erro ao buscar posições')
-                reject(response.toJSON());
+                reject(error);
             } else {
                 response = JSON.parse(body);
                 resolve(response);
@@ -133,7 +152,7 @@ async function getPositionDetail(positionId, accessToken) {
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
                 console.error('Erro ao buscar detalhe de posição ' + positionId)
-                reject(response.toJSON());
+                reject(error);
             } else {
                 response = JSON.parse(body);
                 resolve(response);
