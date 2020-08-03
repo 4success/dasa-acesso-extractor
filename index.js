@@ -3,6 +3,7 @@ require('dotenv').config();
 const request = require("request");
 const stringify = require('csv-stringify');
 const fs = require('fs');
+const path = require('path');
 
 const moment = require('moment');
 const auth = require('./auth');
@@ -143,21 +144,28 @@ async function getPositions(sUrl, accessToken, page) {
 
 async function getPositionDetail(positionId, accessToken) {
     return new Promise((resolve, reject) => {
-        const options = {
-            uri: `${apiBaseUrl}/v1/positions/${positionId}?includes=persons`,
-            encoding: null,
-            headers: {'Authorization': `${accessToken.token_type} ${accessToken.access_token}`}
-        };
+        const localFileCopyPath = `temp/${positionId}.json`;
 
-        request(options, function (error, response, body) {
-            if (error || response.statusCode !== 200) {
-                console.error('Erro ao buscar detalhe de posição ' + positionId)
-                reject(error);
-            } else {
-                response = JSON.parse(body);
-                resolve(response);
-            }
-        });
+        if (_fileAlreadyDownloaded(localFileCopyPath)) {
+            resolve(_getLocalCopy(localFileCopyPath));
+        } else {
+            const options = {
+                uri: `${apiBaseUrl}/v1/positions/${positionId}?includes=persons`,
+                encoding: null,
+                headers: {'Authorization': `${accessToken.token_type} ${accessToken.access_token}`}
+            };
+
+            request(options, function (error, response, body) {
+                if (error || response.statusCode !== 200) {
+                    console.error('Erro ao buscar detalhe de posição ' + positionId)
+                    reject(error);
+                } else {
+                    response = JSON.parse(body);
+                    _saveLocalCopy(response, localFileCopyPath);
+                    resolve(response);
+                }
+            });
+        }
     });
 }
 
@@ -169,6 +177,31 @@ async function getAccessToken() {
     }
 
     return initialAccessToken;
+}
+
+function _fileAlreadyDownloaded(filePath) {
+    return fs.existsSync(filePath);
+}
+
+function _ensureDirectoryExistence(filePath) {
+    const dirname = path.dirname(filePath);
+    if (fs.existsSync(dirname)) {
+        return true;
+    }
+    _ensureDirectoryExistence(dirname);
+    fs.mkdirSync(dirname);
+}
+
+function _saveLocalCopy(oData, dest) {
+    _ensureDirectoryExistence(dest);
+    let data = JSON.stringify(oData);
+
+    fs.writeFileSync(dest, data);
+}
+
+function _getLocalCopy(sPath) {
+    let rawData = fs.readFileSync(sPath);
+    return JSON.parse(rawData);
 }
 
 main().catch((error) => console.error(error));
