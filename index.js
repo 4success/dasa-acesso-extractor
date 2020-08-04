@@ -91,7 +91,7 @@ async function main() {
         oExport.phone = position.profile.mobile;
         oExport.hireDate = moment(position.admission_date).format('DD/MM/YYYY');
 
-        if (Array.isArray(positionDetail.persons)) {
+        if (positionDetail && Array.isArray(positionDetail.persons)) {
             const oPerson = positionDetail.persons.find(person => {
                 return person.personType === 'candidate';
             });
@@ -170,7 +170,7 @@ async function getPositionDetail(positionId, accessToken) {
             request(options, function (error, response, body) {
                 if (error || response.statusCode !== 200) {
                     console.error('Erro ao buscar detalhe de posição ' + positionId)
-                    reject(JSON.parse(response.body));
+                    reject(JSON.parse(response && typeof response.body !== 'undefined' ? response.body : 'Erro desconhecido'));
                 } else {
                     response = JSON.parse(body);
                     _saveLocalCopy(response, localFileCopyPath);
