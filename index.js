@@ -74,7 +74,15 @@ async function main() {
             console.log(e);
             console.log(`Tentando novamente em 2s...`);
             await new Promise(r => setTimeout(r, 2000));
-            positionDetail = await getPositionDetail(position.id, await getAccessToken());
+
+            try {
+                positionDetail = await getPositionDetail(position.id, await getAccessToken());
+            } catch (e) {
+                if (e === 'internal error') {
+                    console.error(`Erro ao buscar CPF da posição ${position.id}. Processo irá continuar sem essa informação`);
+                    continue;
+                }
+            }
         }
 
         let oExport = new EmployeeExport();
@@ -96,7 +104,7 @@ async function main() {
         }
 
         aOutput.push(oExport);
-        console.log(`processando registro ${i}...`);
+        console.log(`processando registro ${i + 1}...`);
     }
 
     let columns = {
@@ -133,7 +141,7 @@ async function getPositions(sUrl, accessToken, page) {
         request(options, function (error, response, body) {
             if (error || response.statusCode !== 200) {
                 console.error('Erro ao buscar posições')
-                reject(error);
+                reject(JSON.parse(response.body));
             } else {
                 response = JSON.parse(body);
                 resolve(response);
@@ -147,8 +155,10 @@ async function getPositionDetail(positionId, accessToken) {
         const localFileCopyPath = `temp/${positionId}.json`;
 
         if (_fileAlreadyDownloaded(localFileCopyPath)) {
+            console.log('Cache local utilizado!');
             resolve(_getLocalCopy(localFileCopyPath));
         } else {
+            console.log('Sem cache, buscando na API');
             const options = {
                 uri: `${apiBaseUrl}/v1/positions/${positionId}?includes=persons`,
                 encoding: null,
@@ -158,7 +168,7 @@ async function getPositionDetail(positionId, accessToken) {
             request(options, function (error, response, body) {
                 if (error || response.statusCode !== 200) {
                     console.error('Erro ao buscar detalhe de posição ' + positionId)
-                    reject(error);
+                    reject(JSON.parse(response.body));
                 } else {
                     response = JSON.parse(body);
                     _saveLocalCopy(response, localFileCopyPath);
