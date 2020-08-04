@@ -91,16 +91,18 @@ async function main() {
         oExport.phone = position.profile.mobile;
         oExport.hireDate = moment(position.admission_date).format('DD/MM/YYYY');
 
-        const oPerson = positionDetail.persons.find(person => {
-            return person.personType === 'candidate';
-        });
+        if (Array.isArray(positionDetail.persons)) {
+            const oPerson = positionDetail.persons.find(person => {
+                return person.personType === 'candidate';
+            });
 
-        const oCpfDocument = oPerson.documents.find(document => {
-            return document.slug === 'cpf';
-        });
+            const oCpfDocument = oPerson.documents.find(document => {
+                return document.slug === 'cpf';
+            });
 
-        if (oCpfDocument) {
-            oExport.cpf = oCpfDocument.data.numero;
+            if (oCpfDocument) {
+                oExport.cpf = oCpfDocument.data.numero;
+            }
         }
 
         aOutput.push(oExport);
