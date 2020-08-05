@@ -170,7 +170,13 @@ async function getPositionDetail(positionId, accessToken) {
             request(options, function (error, response, body) {
                 if (error || response.statusCode !== 200) {
                     console.error('Erro ao buscar detalhe de posição ' + positionId)
-                    reject(JSON.parse(response && typeof response.body !== 'undefined' ? response.body : 'Erro desconhecido'));
+                    let errorMessage;
+                    try {
+                        errorMessage = (response && typeof response.body !== 'undefined') ? JSON.parse(response.body) : 'Erro desconhecido';
+                    } catch (e) {
+                        errorMessage = 'Erro desconhecido';
+                    }
+                    reject(errorMessage);
                 } else {
                     response = JSON.parse(body);
                     _saveLocalCopy(response, localFileCopyPath);
